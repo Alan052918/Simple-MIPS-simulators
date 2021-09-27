@@ -82,10 +82,9 @@ class INSMem {
   bitset<32> ReadMemory(bitset<32> ReadAddress) {
     // implement!
     // (Read the byte at the ReadAddress and the following three byte).
-    //
-    size_t readByteAddr = (size_t)ReadAddress.to_ulong();
+    int readByteAddr = (int)ReadAddress.to_ulong();
     string instructionStr;
-    for (size_t i = 0; i < 4; ++i) {
+    for (int i = 0; i < 4; ++i) {
       string byteStr = IMem.at(readByteAddr + i).to_string();
       instructionStr += byteStr;
     }
