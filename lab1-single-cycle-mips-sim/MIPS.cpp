@@ -28,7 +28,16 @@ class RF {
 
   void ReadWrite(bitset<5> RdReg1, bitset<5> RdReg2, bitset<5> WrtReg,
                  bitset<32> WrtData, bitset<1> WrtEnable) {
-    // TODO: implement!
+    // implement!
+    int rdReg1Addr = (int)RdReg1.to_ulong();
+    ReadData1 = Registers.at(rdReg1Addr);
+    int rdReg2Addr = (int)RdReg2.to_ulong();
+    ReadData2 = Registers.at(rdReg2Addr);
+
+    if (WrtEnable.test(0)) {
+      int wrtRegAddr = (int)WrtReg.to_ulong();
+      Registers.at(wrtRegAddr) = WrtData;
+    }
   }
 
   void OutputRF() {
