@@ -73,7 +73,7 @@ class ALU {
       case 3: {  // subu
         unsigned long oprand1Val = oprand1.to_ulong();
         unsigned long oprand2Val = oprand2.to_ulong();
-        ALUresult = bitset<32>(operand1Val - operand2Val);
+        ALUresult = bitset<32>(oprand1Val - oprand2Val);
       }
       case 4: {  // and
         ALUresult = oprand1 & oprand2;
@@ -144,6 +144,7 @@ class DataMem {
       cout << "Unable to open file";
     dmem.close();
   }
+
   bitset<32> MemoryAccess(bitset<32> Address, bitset<32> WriteData,
                           bitset<1> readmem, bitset<1> writemem) {
     // implement!
@@ -158,7 +159,11 @@ class DataMem {
     }
     if (writemem.test(0)) {
       int writeAddr = (int)Address.to_ulong();
-      DMem.at(writeAddr) = WriteData;
+      string writeDataStr = WriteData.to_string();
+      for (int i = 0; i < 32; i += 8) {
+        string byteStr = writeDataStr.substr(i, i + 8);
+        DMem.at(writeAddr + i) = bitset<8>(byteStr);
+      }
     }
     return readdata;
   }
