@@ -66,23 +66,23 @@ class ALU {
     // implement!
     switch (ALUOP.to_ulong()) {
       case 1: {  // addu / addiu
-                unsigned long oprand1Val = oprand1.to_ulong();
-                unsigned long oprand2Val = oprand2.to_ulong();
-                ALUresult = bitset<32>(oprand1Val + oprand2Val);
+        unsigned long oprand1Val = oprand1.to_ulong();
+        unsigned long oprand2Val = oprand2.to_ulong();
+        ALUresult = bitset<32>(oprand1Val + oprand2Val);
       }
       case 3: {  // subu
-                unsigned long oprand1Val = oprand1.to_ulong();
-                unsigned long oprand2Val = oprand2.to_ulong();
-                ALUresult = bitset<32>(operand1Val - operand2Val);
+        unsigned long oprand1Val = oprand1.to_ulong();
+        unsigned long oprand2Val = oprand2.to_ulong();
+        ALUresult = bitset<32>(operand1Val - operand2Val);
       }
       case 4: {  // and
-                ALUresult = oprand1 & oprand2;
+        ALUresult = oprand1 & oprand2;
       }
       case 5: {  // or
-                ALUresult = oprand1 | oprand2;
+        ALUresult = oprand1 | oprand2;
       }
       case 7: {  // nor
-                ALUresult = ~(oprand1 | oprand2);
+        ALUresult = ~(oprand1 | oprand2);
       }
     }
     return ALUresult;
