@@ -65,23 +65,23 @@ class ALU {
                           bitset<32> oprand2) {
     // implement!
     switch (ALUOP.to_ulong()) {
-      case 1: {  // addu / addiu
+      case ADDU: {  // addu / addiu
         unsigned long oprand1Val = oprand1.to_ulong();
         unsigned long oprand2Val = oprand2.to_ulong();
         ALUresult = bitset<32>(oprand1Val + oprand2Val);
       }
-      case 3: {  // subu
+      case SUBU: {
         unsigned long oprand1Val = oprand1.to_ulong();
         unsigned long oprand2Val = oprand2.to_ulong();
         ALUresult = bitset<32>(oprand1Val - oprand2Val);
       }
-      case 4: {  // and
+      case AND: {
         ALUresult = oprand1 & oprand2;
       }
-      case 5: {  // or
+      case OR: {
         ALUresult = oprand1 | oprand2;
       }
-      case 7: {  // nor
+      case NOR: {
         ALUresult = ~(oprand1 | oprand2);
       }
     }
@@ -191,12 +191,40 @@ int main() {
   INSMem myInsMem;
   DataMem myDataMem;
 
+  int pc = 0;
   while (1) {
     // Fetch
+    myInsMem.ReadMemory(bitset<32>(pc));
 
     // If current insturciton is "11111111111111111111111111111111", then break;
+    if (myInsMem.Instruction.all()) {
+      break;
+    }
 
     // decode(Read RF)
+    string instructionStr = myInsMem.Instruction.to_string();
+    string opcodeStr = instructionStr.substr(6);
+    if (opcodeStr == "000000") {
+      // R-type
+    } else if (opcodeStr == "001001") {
+      // I-type
+      // addiu
+    } else if (opcodeStr == "000100") {
+      // I-type
+      // beq
+    } else if (opcodeStr == "000010") {
+      // J-type
+      // j
+    } else if (opcodeStr == "100011") {
+      // I-type
+      // lw
+    } else if (opcodeStr == "101011") {
+      // I-type
+      // sw
+    } else {
+      cout << "unsupported instruction" << endl;
+      exit(EXIT_FAILURE);
+    }
 
     // Execute
 
