@@ -146,7 +146,20 @@ class DataMem {
   }
   bitset<32> MemoryAccess(bitset<32> Address, bitset<32> WriteData,
                           bitset<1> readmem, bitset<1> writemem) {
-    // TODO: implement!
+    // implement!
+    if (readmem.test(0)) {
+      int readByteAddr = (int)Address.to_ulong();
+      string readDataStr;
+      for (int i = 0; i < 4; i++) {
+        string byteStr = DMem.at(readByteAddr + i).to_string();
+        readDataStr += byteStr;
+      }
+      readdata = bitset<32>(readDataStr);
+    }
+    if (writemem.test(0)) {
+      int writeAddr = (int)Address.to_ulong();
+      DMem.at(writeAddr) = WriteData;
+    }
     return readdata;
   }
 
