@@ -29,13 +29,13 @@ class RF {
   void ReadWrite(bitset<5> RdReg1, bitset<5> RdReg2, bitset<5> WrtReg,
                  bitset<32> WrtData, bitset<1> WrtEnable) {
     // implement!
-    int rdReg1Addr = (int)RdReg1.to_ulong();
+    unsigned rdReg1Addr = RdReg1.to_ulong();
     ReadData1 = Registers.at(rdReg1Addr);
-    int rdReg2Addr = (int)RdReg2.to_ulong();
+    unsigned rdReg2Addr = RdReg2.to_ulong();
     ReadData2 = Registers.at(rdReg2Addr);
 
     if (WrtEnable.test(0)) {
-      int wrtRegAddr = (int)WrtReg.to_ulong();
+      unsigned wrtRegAddr = WrtReg.to_ulong();
       Registers.at(wrtRegAddr) = WrtData;
     }
   }
@@ -112,7 +112,7 @@ class INSMem {
   bitset<32> ReadMemory(bitset<32> ReadAddress) {
     // implement!
     // (Read the byte at the ReadAddress and the following three byte).
-    int readByteAddr = (int)ReadAddress.to_ulong();
+    unsigned readByteAddr = ReadAddress.to_ulong();
     string instructionStr;
     for (int i = 0; i < 4; ++i) {
       string byteStr = IMem.at(readByteAddr + i).to_string();
@@ -149,7 +149,7 @@ class DataMem {
                           bitset<1> readmem, bitset<1> writemem) {
     // implement!
     if (readmem.test(0)) {
-      int readByteAddr = (int)Address.to_ulong();
+      unsigned readByteAddr = Address.to_ulong();
       string readDataStr;
       for (int i = 0; i < 4; i++) {
         string byteStr = DMem.at(readByteAddr + i).to_string();
@@ -158,7 +158,7 @@ class DataMem {
       readdata = bitset<32>(readDataStr);
     }
     if (writemem.test(0)) {
-      int writeAddr = (int)Address.to_ulong();
+      unsigned writeAddr = Address.to_ulong();
       string writeDataStr = WriteData.to_string();
       for (int i = 0; i < 32; i += 8) {
         string byteStr = writeDataStr.substr(i, i + 8);
@@ -185,13 +185,22 @@ class DataMem {
   vector<bitset<8> > DMem;
 };
 
+enum class INSType { kIType, kRType, kJType };
+
 int main() {
   RF myRF;
   ALU myALU;
   INSMem myInsMem;
   DataMem myDataMem;
 
+  INSType myInsType;
+  bitset<3> myALUOP;
+  bool isLoad;
+  bool isStore;
+  bool isBranch;
+  bool wrtEnable;
   int pc = 0;
+
   while (1) {
     // Fetch
     myInsMem.ReadMemory(bitset<32>(pc));
@@ -203,27 +212,36 @@ int main() {
 
     // decode(Read RF)
     string instructionStr = myInsMem.Instruction.to_string();
-    string opcodeStr = instructionStr.substr(6);
+    string opcodeStr = instructionStr.substr(0, 6);  // inst[31:26]
+
     if (opcodeStr == "000000") {
-      // R-type
-    } else if (opcodeStr == "001001") {
-      // I-type
-      // addiu
-    } else if (opcodeStr == "000100") {
-      // I-type
-      // beq
+      myInsType = INSType::kRType;
     } else if (opcodeStr == "000010") {
-      // J-type
-      // j
-    } else if (opcodeStr == "100011") {
-      // I-type
-      // lw
-    } else if (opcodeStr == "101011") {
-      // I-type
-      // sw
+      myInsType = INSType::kJType;  // j
     } else {
-      cout << "unsupported instruction" << endl;
-      exit(EXIT_FAILURE);
+      myInsType = INSType::kIType;
+    }
+
+    if (opcodeStr == "100011") {
+      isLoad = true;  // lw
+    } else if (opcodeStr == "101011") {
+      isStore = true;  // sw
+    } else if (opcodeStr == "000100") {
+      isBranch = true;  // beq
+    }
+
+    if (isLoad || isStore) {
+      myALUOP = bitset<3>("001");
+    } else if (myInsType == INSType::kRType) {
+      myALUOP = bitset<3>(instructionStr.substr(29));  // inst[2:0]
+    } else {
+      myALUOP = bitset<3>(instructionStr.substr(3, 3));  // inst[28:26]
+    }
+
+    if (isStore || isBranch || (myInsType == INSType::kJType)) {
+      wrtEnable = false;
+    } else {
+      wrtEnable = true;
     }
 
     // Execute
