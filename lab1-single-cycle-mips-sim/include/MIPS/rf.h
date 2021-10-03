@@ -5,16 +5,17 @@
 
 class RF {
  public:
-  bitset<32> ReadData1, ReadData2;
+  std::bitset<32> ReadData1, ReadData2;
 
   RF();
 
   void OutputRF();
-  void ReadWrite(bitset<5> RdReg1, bitset<5> RdReg2, bitset<5> WrtReg,
-                 bitset<32> WrtData, bitset<1> WrtEnable);
+  void ReadWrite(std::bitset<5> RdReg1, std::bitset<5> RdReg2,
+                 std::bitset<5> WrtReg, std::bitset<32> WrtData,
+                 std::bitset<1> WrtEnable);
 
  private:
-  vector<bitset<32> > Registers;
+  std::vector<std::bitset<32> > Registers;
 };
 
 #endif  // RF_H_

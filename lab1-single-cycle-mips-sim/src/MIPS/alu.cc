@@ -2,20 +2,20 @@
 #include "../../include/MIPS/alu.h"
 #include "../../include/MIPS/decoder.h"
 
-bitset<32> ALU::ALUOperation(bitset<3> ALUOP, bitset<32> oprand1,
-                             bitset<32> oprand2) {
+std::bitset<32> ALU::ALUOperation(std::bitset<3> ALUOP, std::bitset<32> oprand1,
+                                  std::bitset<32> oprand2) {
   // implement!
   switch (ALUOP.to_ulong()) {
     case ADDU: {
       unsigned long oprand1Val = oprand1.to_ulong();
       unsigned long oprand2Val = oprand2.to_ulong();
-      ALUresult = bitset<32>(oprand1Val + oprand2Val);
+      ALUresult = std::bitset<32>(oprand1Val + oprand2Val);
       break;
     }
     case SUBU: {
       unsigned long oprand1Val = oprand1.to_ulong();
       unsigned long oprand2Val = oprand2.to_ulong();
-      ALUresult = bitset<32>(oprand1Val - oprand2Val);
+      ALUresult = std::bitset<32>(oprand1Val - oprand2Val);
       break;
     }
     case AND: {
@@ -31,7 +31,7 @@ bitset<32> ALU::ALUOperation(bitset<3> ALUOP, bitset<32> oprand1,
       break;
     }
     default: {
-      cout << "unsupported ALU operation" << endl;
+      std::cout << "unsupported ALU operation" << std::endl;
       break;
     }
   }

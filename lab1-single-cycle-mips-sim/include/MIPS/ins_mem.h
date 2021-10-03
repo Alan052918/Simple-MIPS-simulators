@@ -5,14 +5,14 @@
 
 class INSMem {
  public:
-  bitset<32> Instruction;
+  std::bitset<32> Instruction;
 
   INSMem();
 
-  bitset<32> ReadMemory(bitset<32> ReadAddress);
+  std::bitset<32> ReadMemory(std::bitset<32> ReadAddress);
 
  private:
-  vector<bitset<8> > IMem;
+  std::vector<std::bitset<8> > IMem;
 };
 
 #endif  // INS_MEM_H

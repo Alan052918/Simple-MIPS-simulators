@@ -3,25 +3,26 @@
 
 RF::RF() {
   Registers.resize(32);
-  Registers[0] = bitset<32>(0);
+  Registers[0] = std::bitset<32>(0);
 }
 
 void RF::OutputRF() {
-  ofstream rfout;
+  std::ofstream rfout;
   rfout.open("RFresult.txt", std::ios_base::app);
   if (rfout.is_open()) {
-    rfout << "A state of RF:" << endl;
+    rfout << "A state of RF:" << std::endl;
     for (int j = 0; j < 32; j++) {
-      rfout << Registers[j] << endl;
+      rfout << Registers[j] << std::endl;
     }
-
-  } else
-    cout << "Unable to open file";
+  } else {
+    std::cout << "Unable to open file";
+  }
   rfout.close();
 }
 
-void RF::ReadWrite(bitset<5> RdReg1, bitset<5> RdReg2, bitset<5> WrtReg,
-                   bitset<32> WrtData, bitset<1> WrtEnable) {
+void RF::ReadWrite(std::bitset<5> RdReg1, std::bitset<5> RdReg2,
+                   std::bitset<5> WrtReg, std::bitset<32> WrtData,
+                   std::bitset<1> WrtEnable) {
   // implement!
   unsigned rdReg1Addr = RdReg1.to_ulong();
   ReadData1 = Registers.at(rdReg1Addr);

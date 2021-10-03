@@ -5,10 +5,10 @@
 
 class ALU {
  public:
-  bitset<32> ALUresult;
+  std::bitset<32> ALUresult;
 
-  bitset<32> ALUOperation(bitset<3> ALUOP, bitset<32> oprand1,
-                          bitset<32> oprand2);
+  std::bitset<32> ALUOperation(std::bitset<3> ALUOP, std::bitset<32> oprand1,
+                               std::bitset<32> oprand2);
 };
 
 #endif  // ALU_H_

@@ -7,8 +7,6 @@
 #include <string>
 #include <vector>
 
-using namespace std;
-
 #define ADDU 1
 #define SUBU 3
 #define AND 4

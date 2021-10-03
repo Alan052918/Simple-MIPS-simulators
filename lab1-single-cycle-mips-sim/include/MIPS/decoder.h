@@ -6,13 +6,13 @@
 class Decoder {
  public:
   enum { kIType, kJType, kRType } insType;
-  bitset<3> aluOp;
+  std::bitset<3> aluOp;
   bool isLoad;
   bool isStore;
   bool isBranch;
   bool wrtEnable;
 
-  void DecodeInstruction(string InstructionStr);
+  void DecodeInstruction(std::string InstructionStr);
 };
 
 #endif  // DECODER_H_

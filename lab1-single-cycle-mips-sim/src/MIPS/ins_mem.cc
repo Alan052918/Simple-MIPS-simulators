@@ -3,30 +3,30 @@
 
 INSMem::INSMem() {
   IMem.resize(MemSize);
-  ifstream imem;
-  string line;
+  std::ifstream imem;
+  std::string line;
   int i = 0;
   imem.open("imem.txt");
   if (imem.is_open()) {
     while (getline(imem, line)) {
-      IMem[i] = bitset<8>(line);
+      IMem[i] = std::bitset<8>(line);
       i++;
     }
-
-  } else
-    cout << "Unable to open file";
+  } else {
+    std::cout << "Unable to open file";
+  }
   imem.close();
 }
 
-bitset<32> INSMem::ReadMemory(bitset<32> ReadAddress) {
+std::bitset<32> INSMem::ReadMemory(std::bitset<32> ReadAddress) {
   // implement!
   // (Read the byte at the ReadAddress and the following three byte).
   unsigned long readByteAddr = ReadAddress.to_ulong();
-  string instructionStr;
+  std::string instructionStr;
   for (int i = 0; i < 4; ++i) {
-    string byteStr = IMem.at(readByteAddr + i).to_string();
+    std::string byteStr = IMem.at(readByteAddr + i).to_string();
     instructionStr += byteStr;
   }
-  Instruction = bitset<32>(instructionStr);
+  Instruction = std::bitset<32>(instructionStr);
   return Instruction;
 }

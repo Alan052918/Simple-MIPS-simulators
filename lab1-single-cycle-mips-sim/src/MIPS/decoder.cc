@@ -1,8 +1,8 @@
 #include "../../include/common.h"
 #include "../../include/MIPS/decoder.h"
 
-void Decoder::DecodeInstruction(string InstructionStr) {
-  string opcodeStr = InstructionStr.substr(0, 6);  // inst[31:26]
+void Decoder::DecodeInstruction(std::string InstructionStr) {
+  std::string opcodeStr = InstructionStr.substr(0, 6);  // inst[31:26]
 
   if (opcodeStr == "000000") {
     this->insType = kRType;
@@ -21,12 +21,13 @@ void Decoder::DecodeInstruction(string InstructionStr) {
   }
 
   if (this->isLoad || this->isStore) {
-    this->aluOp = bitset<3>("001");
+    this->aluOp = std::bitset<3>("001");
   } else if (this->insType == kRType) {
-    this->aluOp = bitset<3>(InstructionStr.substr(29)).to_ulong();  // inst[2:0]
+    this->aluOp =
+        std::bitset<3>(InstructionStr.substr(29)).to_ulong();  // inst[2:0]
   } else {
     this->aluOp =
-        bitset<3>(InstructionStr.substr(3, 3)).to_ulong();  // inst[28:26]
+        std::bitset<3>(InstructionStr.substr(3, 3)).to_ulong();  // inst[28:26]
   }
 
   if (this->isStore || this->isBranch || (this->insType == kJType)) {
