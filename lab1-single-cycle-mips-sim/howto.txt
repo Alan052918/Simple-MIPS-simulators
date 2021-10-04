@@ -1,0 +1,9 @@
+To compile just run `make` command in terminal.
+
+This will generate an `obj` directory for keeping intermediate object files for 
+linking as well as a `bin` directory to place the final executable binaries. 
+Upon success `obj` folder will be deleted, and an executable `bin/MIPS` can be 
+found under the `bin` directory.
+
+To clean up all intermediate and executable files, keeping only source files, 
+run `make clean`. This will remove `obj` and `bin` directories if exist.
