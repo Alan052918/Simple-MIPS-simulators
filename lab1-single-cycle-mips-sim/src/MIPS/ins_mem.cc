@@ -13,7 +13,8 @@ INSMem::INSMem() {
       i++;
     }
   } else {
-    std::cout << "Unable to open file";
+    std::cerr << "Unable to open imem file" << std::endl;
+    exit(EXIT_FAILURE);
   }
   imem.close();
 }

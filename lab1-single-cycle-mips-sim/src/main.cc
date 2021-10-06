@@ -97,11 +97,12 @@ int main() {
                   ? std::bitset<32>(std::string(16, '1') + imm.to_string())
                   : std::bitset<32>(std::string(16, '0') + imm.to_string());
           myALU.ALUOperation(myDecoder.aluOp, rsRegData, immSignExt);
-          if (myDecoder.isLoad || myDecoder.isStore) {
-            RWMemAddr = myALU.ALUresult;  // lw
-            if (myDecoder.isStore) {      // sw
-              wrtData = rtRegData;
-            }
+          if (myDecoder.isLoad) {  // lw
+            RWMemAddr = myALU.ALUresult;
+            WBRegAddr = rt;
+          } else if (myDecoder.isStore) {  // sw
+            RWMemAddr = myALU.ALUresult;
+            wrtData = rtRegData;
           } else {  // addiu
             wrtData = myALU.ALUresult;
             WBRegAddr = rt;

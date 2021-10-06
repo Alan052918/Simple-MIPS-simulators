@@ -12,10 +12,10 @@ SRC_FILES:=$(wildcard $(SRC_DIR)/*.cc)
 OBJ_FILES:=$(patsubst $(SRC_DIR)/%.cc,$(OBJ_DIR)/%.o,$(SRC_FILES))
 
 # make MIPS
-MIPS : $(OBJ_FILES) src/main.cc
+$(BIN)/MIPS : $(OBJ_FILES) src/main.cc
 	@echo "Linking MIPS..."
 	@echo "  mkdir -p $(BIN)"; mkdir -p $(BIN)
-	@echo "  $(CC) -o $(BIN)/$@ $^ -std=c++11"; g++ -o $(BIN)/$@ $^ -std=c++11
+	@echo "  $(CC) $^ $(CFLAGS) -o $@"; $(CC) $^ $(CFLAGS) -o $@
 	@echo "Success! Removing intermediate object files"
 	@echo "  rm -rf $(OBJ_DIR)"; rm -rf $(OBJ_DIR)
 
