@@ -9,8 +9,10 @@ INSMem::INSMem() {
   imem.open("imem.txt");
   if (imem.is_open()) {
     while (getline(imem, line)) {
-      IMem[i] = std::bitset<8>(line);
-      i++;
+      if (line.length() >= 8) {
+        IMem[i] = std::bitset<8>(line);
+        i++;
+      }
     }
   } else {
     std::cerr << "Unable to open imem file" << std::endl;

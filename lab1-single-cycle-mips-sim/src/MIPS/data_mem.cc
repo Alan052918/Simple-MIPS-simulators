@@ -9,8 +9,10 @@ DataMem::DataMem() {
   dmem.open("dmem.txt");
   if (dmem.is_open()) {
     while (getline(dmem, line)) {
-      DMem[i] = std::bitset<8>(line);
-      i++;
+      if (line.length() >= 8) {
+        DMem[i] = std::bitset<8>(line);
+        i++;
+      }
     }
   } else {
     std::cerr << "Unable to open dmem file" << std::endl;
