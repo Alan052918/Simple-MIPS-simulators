@@ -47,6 +47,7 @@ int main() {
     // decode (Read RF)
     instructionStr = myInsMem.Instruction.to_string();
     myDecoder.DecodeInstruction(instructionStr);
+
     switch (myDecoder.insType) {
       case Decoder::kIType: {
         rs = std::bitset<5>(instructionStr.substr(6, 5));   // 25-21
@@ -93,7 +94,7 @@ int main() {
         if (myDecoder.isLoad || myDecoder.isStore ||
             (myDecoder.aluOp.to_string() == "001")) {
           std::bitset<32> immSignExt =
-              imm.test(0)
+              imm.test(15)
                   ? std::bitset<32>(std::string(16, '1') + imm.to_string())
                   : std::bitset<32>(std::string(16, '0') + imm.to_string());
           myALU.ALUOperation(myDecoder.aluOp, rsRegData, immSignExt);
@@ -109,10 +110,10 @@ int main() {
           }
         } else if (myDecoder.isBranch && (rsRegData == rtRegData)) {  // beq
           std::bitset<32> branchAddr =
-              imm.test(0) ? std::bitset<32>(std::string(14, '1') +
-                                            imm.to_string() + "00")
-                          : std::bitset<32>(std::string(14, '0') +
-                                            imm.to_string() + "00");
+              imm.test(15) ? std::bitset<32>(std::string(14, '1') +
+                                             imm.to_string() + "00")
+                           : std::bitset<32>(std::string(14, '0') +
+                                             imm.to_string() + "00");
           myPC = std::bitset<32>(myPC.to_ulong() + branchAddr.to_ulong());
         }
         break;
