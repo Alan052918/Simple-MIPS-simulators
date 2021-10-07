@@ -10,7 +10,7 @@ int main() {
   ALU myALU;
   INSMem myInsMem;
   DataMem myDataMem;
-  Decoder myDecoder;
+  Decoder myDecoder;  // non-persistent
   std::bitset<32> myPC;
 
   // for ID
@@ -46,6 +46,7 @@ int main() {
 
     // decode (Read RF)
     instructionStr = myInsMem.Instruction.to_string();
+    myDecoder = Decoder();  // refresh decoder states
     myDecoder.DecodeInstruction(instructionStr);
 
     switch (myDecoder.insType) {
