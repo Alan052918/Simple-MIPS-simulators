@@ -3,20 +3,17 @@
 
 #include <bitset>
 
-struct IFStruct
-{
+struct IFStruct {
   std::bitset<32> PC;
   bool nop;
 };
 
-struct IDStruct
-{
+struct IDStruct {
   std::bitset<32> Instr;
   bool nop;
 };
 
-struct EXStruct
-{
+struct EXStruct {
   std::bitset<32> Read_data1;
   std::bitset<32> Read_data2;
   std::bitset<16> Imm;
@@ -26,13 +23,12 @@ struct EXStruct
   bool is_I_type;
   bool rd_mem;
   bool wrt_mem;
-  bool alu_op; // 1 for addu, lw, sw, 0 for subu
+  bool alu_op;  // 1 for addu, lw, sw, 0 for subu
   bool wrt_enable;
   bool nop;
 };
 
-struct MEMStruct
-{
+struct MEMStruct {
   std::bitset<32> ALUresult;
   std::bitset<32> Store_data;
   std::bitset<5> Rs;
@@ -44,8 +40,7 @@ struct MEMStruct
   bool nop;
 };
 
-struct WBStruct
-{
+struct WBStruct {
   std::bitset<32> Wrt_data;
   std::bitset<5> Rs;
   std::bitset<5> Rt;
@@ -54,8 +49,7 @@ struct WBStruct
   bool nop;
 };
 
-struct stateStruct
-{
+struct stateStruct {
   IFStruct IF;
   IDStruct ID;
   EXStruct EX;
@@ -63,4 +57,4 @@ struct stateStruct
   WBStruct WB;
 };
 
-#endif // STATE_HPP_
+#endif  // STATE_HPP_
