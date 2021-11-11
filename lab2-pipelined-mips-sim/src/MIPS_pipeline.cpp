@@ -78,7 +78,6 @@ int main() {
 
     /* --------------------- MEM stage --------------------- */
     if (!state.MEM.nop) {
-      // resolve structural hazard: write before read
       if (state.MEM.wrt_mem) {  // Sw
         myDataMem.writeDataMem(state.MEM.ALUresult, state.MEM.Store_data);
       }
@@ -177,11 +176,11 @@ int main() {
     if (!state.IF.nop) {
       myInsMem.readInstr(state.IF.PC);
       if (myInsMem.Instruction.all()) {
-        // TODO: Halt
+        // Halt
         newState.IF.nop = true;
         newState.IF.PC = state.IF.PC;
-        newState.ID.nop = true;
       } else {
+        newState.IF.nop = state.IF.nop;
         newState.ID.Instr = myInsMem.Instruction;
       }
     }
