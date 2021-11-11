@@ -177,10 +177,11 @@ int main() {
       myInsMem.readInstr(state.IF.PC);
       if (myInsMem.Instruction.all()) {
         // Halt
-        newState.IF.nop = true;
         newState.IF.PC = state.IF.PC;
+        newState.IF.nop = true;
+        newState.ID.Instr = state.ID.Instr;
       } else {
-        newState.IF.nop = state.IF.nop;
+        newState.IF.nop = false;
         newState.ID.Instr = myInsMem.Instruction;
       }
     }
