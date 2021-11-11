@@ -104,12 +104,46 @@ int main() {
                                                     state.EX.Imm.to_string())
                                   : std::bitset<32>(std::string(16, '0') +
                                                     state.EX.Imm.to_string());
-        term1 = state.EX.Read_data1.to_ulong();
-        term2 = imm_sign_ext.to_ulong();
+        term1 = state.EX.Read_data1.to_ulong();  // R[rs] data
+        term2 = imm_sign_ext.to_ulong();         // Imm sign extended
+
+        // MEM-EX forwarding
+        // previous previous instruction updates RF
+        if (state.WB.wrt_enable && (state.WB.Wrt_reg_addr == state.EX.Rs)) {
+          term1 = state.WB.Wrt_data.to_ulong();
+        }
+
+        // EX-EX forwarding
+        // previous instruction updates RF
+        if (state.MEM.wrt_enable && (state.WB.Wrt_reg_addr == state.EX.Rs)) {
+          term1 = state.MEM.ALUresult.to_ulong();
+        }
       } else {
         // R-type: Addu, Subu
-        term1 = state.EX.Read_data1.to_ulong();  // rs
-        term2 = state.EX.Read_data2.to_ulong();  // rt
+        term1 = state.EX.Read_data1.to_ulong();  // R[rs] data
+        term2 = state.EX.Read_data2.to_ulong();  // R[rt] data
+
+        // MEM-EX forwarding
+        // previous previous instruction updates RF
+        if (state.WB.wrt_enable) {
+          if (state.WB.Wrt_reg_addr == state.EX.Rs) {
+            term1 = state.WB.Wrt_data.to_ulong();
+          }
+          if (state.WB.Wrt_reg_addr == state.EX.Rt) {
+            term2 = state.WB.Wrt_data.to_ulong();
+          }
+        }
+
+        // EX-EX forwarding
+        // previous instruction updates RF
+        if (state.MEM.wrt_enable && !state.MEM.rd_mem) {
+          if (state.MEM.Wrt_reg_addr == state.EX.Rs) {
+            term1 = state.MEM.ALUresult.to_ulong();
+          }
+          if (state.MEM.Wrt_reg_addr == state.EX.Rt) {
+            term2 = state.MEM.ALUresult.to_ulong();
+          }
+        }
       }
 
       // Addu, Subu, Lw, Sw (Beq resolved at ID stage)
@@ -170,19 +204,31 @@ int main() {
             std::bitset<32>(newState.IF.PC.to_ulong() + branch_addr.to_ulong());
       }
     }
+
+    // stalling resolution
+    // assume not stalled by default
     newState.EX.nop = state.ID.nop;
+    if (!state.EX.nop &&    // EX stage not already stalled for this cycle
+        state.EX.rd_mem &&  // last instruction Lw
+        !newState.EX.is_I_type &&  // new instruction Addu/Subu
+        (state.EX.Wrt_reg_addr == newState.EX.Rs ||
+         state.EX.Wrt_reg_addr == newState.EX.Rt)) {
+      newState.EX.nop = true;
+      newState.ID = state.ID;
+      newState.IF.PC = state.IF.PC;
+    }
 
     /* --------------------- IF stage --------------------- */
     if (!state.IF.nop) {
       myInsMem.readInstr(state.IF.PC);
       if (myInsMem.Instruction.all()) {
         // Halt
+        newState.ID.Instr = state.ID.Instr;
         newState.IF.PC = state.IF.PC;
         newState.IF.nop = true;
-        newState.ID.Instr = state.ID.Instr;
       } else {
-        newState.IF.nop = false;
         newState.ID.Instr = myInsMem.Instruction;
+        newState.IF.nop = false;
       }
     }
     newState.ID.nop = state.IF.nop;
@@ -193,7 +239,7 @@ int main() {
       break;
 
     // print states after executing cycle 0, cycle 1, cycle 2 ...
-    printState(newState, cycle);
+    printState(newState, cycle++);
 
     // The end of the cycle and updates the current state with the values
     // calculated in this cycle
