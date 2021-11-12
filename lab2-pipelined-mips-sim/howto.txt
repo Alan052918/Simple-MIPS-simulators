@@ -1,0 +1,56 @@
+Hi there! My name is Junda Ai (ja4426). This lab is a collaboration with Yujie
+YU (yy3913).
+
+We've provided a Makefile for building executable:
+
+- To compile source code and generate executable: run command "make". This will
+	create a new directory named "bin/" under the project root directory, and 
+	create an executable file named "mips" in that "bin" directory, as well as 
+	some supportive files for debugging using gdb/lldb.
+- To remove executable files: run command "make clean". This will remove the 
+	"bin" directory if it was created.
+
+Initial project directory structure:
+
+=========================
+.
+├── Makefile
+├── howto.txt
+├── include
+│   ├── data_mem.hpp
+│   ├── ins_mem.hpp
+│   ├── rf.hpp
+│   └── state.hpp
+└── src
+    └── MIPS_pipeline.cpp
+
+2 directories, 7 files
+-------------------------
+
+Directory structure after executing "make" command:
+
+============================
+.
+├── Makefile
+├── bin
+│   ├── mips
+│   └── mips.dSYM
+│       └── Contents
+│           ├── Info.plist
+│           └── Resources
+│               └── DWARF
+│                   └── mips
+├── howto.txt
+├── include
+│   ├── data_mem.hpp
+│   ├── ins_mem.hpp
+│   ├── rf.hpp
+│   └── state.hpp
+└── src
+    └── MIPS_pipeline.cpp
+
+7 directories, 10 files
+---------------------------
+
+Thank you for grading.
+
