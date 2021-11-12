@@ -149,7 +149,9 @@ int main() {
       // Addu, Subu, Lw, Sw (Beq resolved at ID stage)
       newState.MEM.ALUresult =
           std::bitset<32>(state.EX.alu_op ? term1 + term2 : term1 - term2);
-      newState.MEM.Store_data = state.EX.Read_data2;  // R[rt] data for Sw
+      newState.MEM.Store_data = state.EX.wrt_mem           // Sw
+                                    ? state.EX.Read_data2  // R[rt] data
+                                    : std::bitset<32>();
       newState.MEM.Rs = state.EX.Rs;
       newState.MEM.Rt = state.EX.Rt;
       newState.MEM.Wrt_reg_addr = state.EX.Wrt_reg_addr;
@@ -226,14 +228,15 @@ int main() {
       if (myInsMem.Instruction.all()) {
         // Halt
         newState.ID.Instr = state.ID.Instr;
+        newState.ID.nop = true;
         newState.IF.PC = state.IF.PC;
         newState.IF.nop = true;
       } else {
         newState.ID.Instr = myInsMem.Instruction;
+        newState.ID.nop = state.IF.nop;
         newState.IF.nop = false;
       }
     }
-    newState.ID.nop = state.IF.nop;
 
     /* --------------------- Cycle End --------------------- */
     if (state.IF.nop && state.ID.nop && state.EX.nop && state.MEM.nop &&
