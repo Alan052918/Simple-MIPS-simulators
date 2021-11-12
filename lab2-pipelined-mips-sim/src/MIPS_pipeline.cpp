@@ -89,6 +89,8 @@ int main() {
       newState.WB.Rt = state.MEM.Rt;
       newState.WB.Wrt_reg_addr = state.MEM.Wrt_reg_addr;
       newState.WB.wrt_enable = state.MEM.wrt_enable;
+    } else {
+      newState.WB = {};
     }
     newState.WB.nop = state.MEM.nop;
 
@@ -158,6 +160,8 @@ int main() {
       newState.MEM.rd_mem = state.EX.rd_mem;
       newState.MEM.wrt_mem = state.EX.wrt_mem;
       newState.MEM.wrt_enable = state.EX.wrt_enable;
+    } else {
+      newState.MEM = {};
     }
     newState.MEM.nop = state.EX.nop;
 
@@ -207,20 +211,13 @@ int main() {
         newState.IF.PC =  // PC = PC + 4 + BranchAddr
             std::bitset<32>(newState.IF.PC.to_ulong() + branch_addr.to_ulong());
       }
+    } else {
+      newState.EX = {};
     }
 
     // stalling resolution
     // assume not stalled by default
     newState.EX.nop = state.ID.nop;
-    if (!state.EX.nop &&    // EX stage not already stalled for this cycle
-        state.EX.rd_mem &&  // last instruction Lw
-        !newState.EX.is_I_type &&  // new instruction Addu/Subu
-        (state.EX.Wrt_reg_addr == newState.EX.Rs ||
-         state.EX.Wrt_reg_addr == newState.EX.Rt)) {
-      newState.EX.nop = true;
-      newState.ID = state.ID;
-      newState.IF.PC = state.IF.PC;
-    }
 
     /* --------------------- IF stage --------------------- */
     if (!state.IF.nop) {
@@ -236,6 +233,16 @@ int main() {
         newState.ID.nop = state.IF.nop;
         newState.IF.nop = false;
       }
+    }
+
+    if (!state.EX.nop &&    // EX stage not already stalled for this cycle
+        state.EX.rd_mem &&  // last instruction Lw
+        !newState.EX.is_I_type &&  // new instruction Addu/Subu
+        (state.EX.Wrt_reg_addr == newState.EX.Rs ||
+         state.EX.Wrt_reg_addr == newState.EX.Rt)) {
+      newState.EX.nop = true;
+      newState.ID = state.ID;
+      newState.IF = state.IF;
     }
 
     /* --------------------- Cycle End --------------------- */
