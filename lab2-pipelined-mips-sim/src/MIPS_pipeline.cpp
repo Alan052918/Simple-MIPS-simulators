@@ -202,8 +202,6 @@ int main() {
           (!newState.EX.is_I_type || newState.EX.rd_mem) ? true : false;
 
       // branch/PC resolution
-      // assumed not taken by default
-      newState.IF.PC = std::bitset<32>(state.IF.PC.to_ulong() + 4);
       if ((opcode_str == "000100") &&  // Beq
           (newState.EX.Read_data1 != newState.EX.Read_data2)) {
         // branch taken (bne rs != rt)
@@ -213,7 +211,7 @@ int main() {
                                   newState.EX.Imm.to_string() + "00")
                 : std::bitset<32>(std::string(14, '0') +
                                   newState.EX.Imm.to_string() + "00");
-        newState.IF.PC =  // PC = PC + 4 + BranchAddr
+        state.IF.PC =  // PC = PC + 4 + BranchAddr
             std::bitset<32>(newState.IF.PC.to_ulong() + branch_addr.to_ulong());
       }
     } else {
@@ -227,6 +225,10 @@ int main() {
     /* --------------------- IF stage --------------------- */
     if (!state.IF.nop) {
       myInsMem.readInstr(state.IF.PC);
+
+      // branch assumed not taken by default
+      newState.IF.PC = std::bitset<32>(state.IF.PC.to_ulong() + 4);
+
       if (myInsMem.Instruction.all()) {
         // Halt
         newState.ID.Instr = state.ID.Instr;
@@ -240,6 +242,7 @@ int main() {
       }
     }
 
+    // Lw-Addu/Subu hazard: stall
     if (!state.EX.nop &&    // EX stage not already stalled for this cycle
         state.EX.rd_mem &&  // last instruction Lw
         !newState.EX.is_I_type &&  // new instruction Addu/Subu
