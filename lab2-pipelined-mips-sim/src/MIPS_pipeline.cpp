@@ -117,8 +117,8 @@ int main() {
 
         // EX-EX forwarding
         // previous instruction updates RF
-        if (state.MEM.wrt_enable && (state.WB.Wrt_reg_addr == state.EX.Rs)) {
-          term1 = state.MEM.ALUresult.to_ulong();
+        if (state.MEM.wrt_enable && (state.MEM.Wrt_reg_addr == state.EX.Rs)) {
+          term1 = newState.WB.Wrt_data.to_ulong();
         }
       } else {
         // R-type: Addu, Subu
@@ -140,10 +140,10 @@ int main() {
         // previous instruction updates RF
         if (state.MEM.wrt_enable && !state.MEM.rd_mem) {
           if (state.MEM.Wrt_reg_addr == state.EX.Rs) {
-            term1 = state.MEM.ALUresult.to_ulong();
+            term1 = newState.WB.Wrt_data.to_ulong();
           }
           if (state.MEM.Wrt_reg_addr == state.EX.Rt) {
-            term2 = state.MEM.ALUresult.to_ulong();
+            term2 = newState.WB.Wrt_data.to_ulong();
           }
         }
       }
@@ -151,9 +151,25 @@ int main() {
       // Addu, Subu, Lw, Sw (Beq resolved at ID stage)
       newState.MEM.ALUresult =
           std::bitset<32>(state.EX.alu_op ? term1 + term2 : term1 - term2);
-      newState.MEM.Store_data = state.EX.wrt_mem           // Sw
-                                    ? state.EX.Read_data2  // R[rt] data
-                                    : std::bitset<32>();
+
+      // data to be stored in DataMem
+      newState.MEM.Store_data = std::bitset<32>();
+      if (state.EX.wrt_mem) {                           // Sw
+        newState.MEM.Store_data = state.EX.Read_data2;  // R[rt] data
+
+        // MEM-EX forwarding
+        // previous previous instruction updates RF
+        if (state.WB.wrt_enable && (state.WB.Wrt_reg_addr == state.EX.Rt)) {
+          newState.MEM.Store_data = state.WB.Wrt_data.to_ulong();
+        }
+
+        // EX-EX forwarding
+        // previous instruction updates RF
+        if (state.MEM.wrt_enable && (state.MEM.Wrt_reg_addr == state.EX.Rt)) {
+          newState.MEM.Store_data = newState.WB.Wrt_data.to_ulong();
+        }
+      }
+
       newState.MEM.Rs = state.EX.Rs;
       newState.MEM.Rt = state.EX.Rt;
       newState.MEM.Wrt_reg_addr = state.EX.Wrt_reg_addr;
@@ -185,11 +201,11 @@ int main() {
               ? std::bitset<16>(instruction_str.substr(16))  // I-type immediate
               : std::bitset<16>();
 
-      if (!newState.EX.is_I_type) {
+      if (!newState.EX.is_I_type) {  // Addu, Subu
         newState.EX.Wrt_reg_addr =
             std::bitset<5>(instruction_str.substr(16, 5));  // R-type rd
-      } else if (newState.EX.rd_mem) {
-        newState.EX.Wrt_reg_addr = newState.EX.Rt;  // I-type rt
+      } else if (newState.EX.rd_mem) {                      // Lw
+        newState.EX.Wrt_reg_addr = newState.EX.Rt;          // I-type rt
       } else {
         newState.EX.Wrt_reg_addr = std::bitset<5>();  // doesn't update RF
       }
