@@ -175,7 +175,9 @@ int main() {
       newState.EX.Read_data2 = myRF.readRF(newState.EX.Rt);  // R[rt] data
 
       newState.EX.Imm =
-          std::bitset<16>(instruction_str.substr(16));  // I-type immediate
+          newState.EX.is_I_type
+              ? std::bitset<16>(instruction_str.substr(16))  // I-type immediate
+              : std::bitset<16>();
       newState.EX.Wrt_reg_addr =
           newState.EX.is_I_type
               ? newState.EX.Rt                                  // I-type rt
