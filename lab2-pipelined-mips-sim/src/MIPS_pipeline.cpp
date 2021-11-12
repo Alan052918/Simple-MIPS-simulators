@@ -184,10 +184,15 @@ int main() {
           newState.EX.is_I_type
               ? std::bitset<16>(instruction_str.substr(16))  // I-type immediate
               : std::bitset<16>();
-      newState.EX.Wrt_reg_addr =
-          newState.EX.is_I_type
-              ? newState.EX.Rt                                  // I-type rt
-              : std::bitset<5>(instruction_str.substr(16, 5));  // R-type rd
+
+      if (!newState.EX.is_I_type) {
+        newState.EX.Wrt_reg_addr =
+            std::bitset<5>(instruction_str.substr(16, 5));  // R-type rd
+      } else if (newState.EX.rd_mem) {
+        newState.EX.Wrt_reg_addr = newState.EX.Rt;  // I-type rt
+      } else {
+        newState.EX.Wrt_reg_addr = std::bitset<5>();  // doesn't update RF
+      }
 
       newState.EX.alu_op =  // addition: Addu, Lw, Sw
           (funct_str == "100001" || newState.EX.rd_mem || newState.EX.wrt_mem)
