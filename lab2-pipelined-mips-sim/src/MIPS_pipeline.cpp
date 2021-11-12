@@ -231,9 +231,9 @@ int main() {
 
       if (myInsMem.Instruction.all()) {
         // Halt
-        newState.ID.Instr = state.ID.Instr;
+        newState.ID.Instr = std::bitset<32>();
         newState.ID.nop = true;
-        newState.IF.PC = state.IF.PC;
+        newState.IF.PC = std::bitset<32>();
         newState.IF.nop = true;
       } else {
         newState.ID.Instr = myInsMem.Instruction;
