@@ -20,17 +20,16 @@
 #include <cmath>
 #include <bitset>
 
-
 using namespace std;
-//access state:
-#define NA 0 // no action
-#define RH 1 // read hit
-#define RM 2 // read miss
-#define WH 3 // Write hit
-#define WM 4 // write miss
 
+// access state:
+#define NA 0  // no action
+#define RH 1  // read hit
+#define RM 2  // read miss
+#define WH 3  // Write hit
+#define WM 4  // write miss
 
-struct config{
+struct config {
   int L1blocksize;
   int L1setsize;
   int L1size;
@@ -39,44 +38,39 @@ struct config{
   int L2size;
 };
 
-/* you can define the cache class here, or design your own data structure for L1 and L2 cache
-   class cache {
+/* you can define the cache class here, or design your own data structure for L1
+   and L2 cache class cache {
 
    }
-*/       
+*/
 
-int main(int argc, char* argv[]){
-
-
-
+int main(int argc, char* argv[]) {
   config cacheconfig;
   ifstream cache_params;
   string dummyLine;
   cache_params.open(argv[1]);
-  while(!cache_params.eof())  // read config file
-  {
-    cache_params>>dummyLine;
-    cache_params>>cacheconfig.L1blocksize;
-    cache_params>>cacheconfig.L1setsize;              
-    cache_params>>cacheconfig.L1size;
-    cache_params>>dummyLine;              
-    cache_params>>cacheconfig.L2blocksize;           
-    cache_params>>cacheconfig.L2setsize;        
-    cache_params>>cacheconfig.L2size;
+
+  // read config file
+  while (!cache_params.eof()) {
+    cache_params >> dummyLine;
+    cache_params >> cacheconfig.L1blocksize;
+    cache_params >> cacheconfig.L1setsize;
+    cache_params >> cacheconfig.L1size;
+    cache_params >> dummyLine;
+    cache_params >> cacheconfig.L2blocksize;
+    cache_params >> cacheconfig.L2setsize;
+    cache_params >> cacheconfig.L2size;
   }
 
-
-
-  // Implement by you: 
+  // Implement by you:
   // initialize the hirearch cache system with those configs
-  // probably you may define a Cache class for L1 and L2, or any data structure you like
+  // probably you may define a Cache class for L1 and L2, or any data structure
+  // you like
 
-
-
-
-  int L1AcceState =0; // L1 access state variable, can be one of NA, RH, RM, WH, WM;
-  int L2AcceState =0; // L2 access state variable, can be one of NA, RH, RM, WH, WM;
-
+  // L1 access state variable, can be one of NA, RH, RM, WH, WM;
+  int L1AcceState = 0;
+  // L2 access state variable, can be one of NA, RH, RM, WH, WM;
+  int L2AcceState = 0;
 
   ifstream traces;
   ofstream tracesout;
@@ -89,60 +83,46 @@ int main(int argc, char* argv[]){
   string line;
   string accesstype;  // the Read/Write access type from the memory trace;
   string xaddr;       // the address from the memory trace store in hex;
-  unsigned int addr;  // the address from the memory trace store in unsigned int;        
-  bitset<32> accessaddr; // the address from the memory trace store in the bitset;
 
-  if (traces.is_open()&&tracesout.is_open()){    
-    while (getline (traces,line)){   // read mem access file and access Cache
+  // the address from the memory trace store in unsigned int;
+  unsigned int addr;
+  // the address from the memory trace store in the bitset;
+  bitset<32> accessaddr;
 
-      istringstream iss(line); 
-      if (!(iss >> accesstype >> xaddr)) {break;}
+  if (traces.is_open() && tracesout.is_open()) {
+    while (getline(traces, line)) {  // read mem access file and access Cache
+
+      istringstream iss(line);
+      if (!(iss >> accesstype >> xaddr)) {
+        break;
+      }
       stringstream saddr(xaddr);
       saddr >> std::hex >> addr;
-      accessaddr = bitset<32> (addr);
-
+      accessaddr = bitset<32>(addr);
 
       // access the L1 and L2 Cache according to the trace;
-      if (accesstype.compare("R")==0)
+      if (accesstype.compare("R") == 0)
 
-      {    
-        //Implement by you:
-        // read access to the L1 Cache, 
-        //  and then L2 (if required), 
-        //  update the L1 and L2 access state variable;
+      {
+        // Implement by you:
+        //  read access to the L1 Cache,
+        //   and then L2 (if required),
+        //   update the L1 and L2 access state variable;
 
-
-
-
-
-
-
+      } else {
+        // Implement by you:
+        //  write access to the L1 Cache,
+        // and then L2 (if required),
+        // update the L1 and L2 access state variable;
       }
-      else 
-      {    
-        //Implement by you:
-        // write access to the L1 Cache, 
-        //and then L2 (if required), 
-        //update the L1 and L2 access state variable;
-
-
-
-
-
-
-      }
-
-
 
       // Output hit/miss results for L1 and L2 to the output file
-      tracesout<< L1AcceState << " " << L2AcceState << endl;
-
-
+      tracesout << L1AcceState << " " << L2AcceState << endl;
     }
     traces.close();
-    tracesout.close(); 
-  }
-  else cout<< "Unable to open trace or traceout file ";
+    tracesout.close();
+  } else
+    cout << "Unable to open trace or traceout file ";
 
   return 0;
 }
