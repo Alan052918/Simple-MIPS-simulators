@@ -101,9 +101,7 @@ int main(int argc, char* argv[]) {
       accessaddr = bitset<32>(addr);
 
       // access the L1 and L2 Cache according to the trace;
-      if (accesstype.compare("R") == 0)
-
-      {
+      if (accesstype.compare("R") == 0) {
         // Implement by you:
         //  read access to the L1 Cache,
         //   and then L2 (if required),
