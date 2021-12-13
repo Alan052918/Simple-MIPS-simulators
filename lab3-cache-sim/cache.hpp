@@ -105,25 +105,22 @@ class LowLevelCache {
     std::cout << "\t\tblk offst: " << this->blockOffsetVal << std::endl;
   }
 
-  void read(std::bitset<32> addr) {
+  // Read/Write cache
+  void access(std::bitset<32> addr, bool isRead) {
     this->decodeAddress(addr);
-    this->accessState = RM;
-    for (int way = 0; way < this->wayCount; way++) {
-      if ((this->tagBitsBuffer.at(this->setIndexVal).at(way) == this->tagVal) &&
-          (this->validBitsBuffer.at(this->setIndexVal).at(way) == true)) {
-        this->accessState = RH;
-        break;
-      }
+    if (isRead == true) {
+      this->accessState = RM;
+    } else {
+      this->accessState = WM;
     }
-  }
-
-  void write(std::bitset<32> addr) {
-    this->decodeAddress(addr);
-    this->accessState = WM;
     for (int way = 0; way < this->wayCount; way++) {
       if ((this->tagBitsBuffer.at(this->setIndexVal).at(way) == this->tagVal) &&
           (this->validBitsBuffer.at(this->setIndexVal).at(way) == true)) {
-        this->accessState = WH;
+        if (isRead == true) {
+          this->accessState = RH;
+        } else {
+          this->accessState = WH;
+        }
         break;
       }
     }
@@ -134,13 +131,10 @@ class LowLevelCache {
       if (this->validBitsBuffer.at(this->setIndexVal).at(way) == false) {
         this->validBitsBuffer.at(this->setIndexVal).at(way) = true;
         this->tagBitsBuffer.at(this->setIndexVal).at(way) = this->tagVal;
-        std::cout << "\t\tWay " << way << " invalid, cache updated"
+        std::cout << "\t\tWay " << way << " invalid/empty, cache updated"
                   << std::endl;
-        return;
       }
     }
-
-    std::cout << "way evict: " << wayEvict << std::endl;
 
     // all ways are valid, set full
     this->tagBitsBuffer.at(this->setIndexVal).at(wayEvict) = this->tagVal;
@@ -158,9 +152,9 @@ class LowLevelCache {
    * @brief Back invalidate L1 when L2 evicts
    * If the evicted block is updated in L1, do nothing
    * If the evicted block is not in L1, do nothing
-   * If the evicted block is in L1 not updated, its valid bit turns off
+   * If the evicted block is in L1 and not updated, its valid bit turns off
    *
-   * @param tagVal
+   * @param tagVal the L2-evicted block to find in L1
    */
   void backInvalidate(unsigned long tagVal) {
     if (tagVal == this->tagVal) {
@@ -227,44 +221,50 @@ class Cache {
   }
 
   void read(std::bitset<32> addr) {
-    std::cout << "\tL1 Cache read" << std::endl;
-    this->l1Cache.read(addr);
+    std::cout << "\tL1 Cache Read" << std::endl;
+    this->l1Cache.access(addr, true);
     if (this->l1Cache.getAccessState() == RH) {
       std::cout << "\tL1 Cache Read Hit" << std::endl;
+      std::cout << "\tL2 Cache No Access" << std::endl;
       return;
     }
     std::cout << "\tL1 Cache Read Miss" << std::endl;
-    std::cout << "\tL2 Cache read" << std::endl;
-    this->l2Cache.read(addr);
+    std::cout << "\tL2 Cache Read" << std::endl;
+    this->l2Cache.access(addr, true);
     if (this->l2Cache.getAccessState() == RH) {
       std::cout << "\tL2 Cache Read Hit" << std::endl;
       this->l1Cache.update();
       return;
     }
     std::cout << "\tL2 Cache Read Miss" << std::endl;
-    std::cout << "\tL1 update" << std::endl;
+    std::cout << "\tL1 Update" << std::endl;
     this->l1Cache.update();
-    std::cout << "\tL2 update" << std::endl;
+    std::cout << "\tL2 Update" << std::endl;
     this->l2Cache.update();
-    std::cout << "\tL1 back invalidate" << std::endl;
+    std::cout << "\tL1 Back Invalidate" << std::endl;
     this->l1Cache.backInvalidate(l2Cache.getTagVal());
   }
 
   void write(std::bitset<32> addr) {
-    std::cout << "\tL1 Cache write" << std::endl;
-    this->l1Cache.write(addr);
+    std::cout << "\tL1 Cache Write" << std::endl;
+    this->l1Cache.access(addr, false);
     if (this->l1Cache.getAccessState() == WH) {
       std::cout << "\tL1 Cache Write Hit" << std::endl;
+      std::cout << "\tL2 Cache No Access" << std::endl;
       return;
     }
-    std::cout << "\tL1 Cache Write Miss" << std::endl;
-    std::cout << "\tL2 Cache write" << std::endl;
-    this->l2Cache.write(addr);
+    std::cout
+        << "\tL1 Cache Write Miss, forward to L2 Cache (Write-no-allocate)"
+        << std::endl;
+    std::cout << "\tL2 Cache Write" << std::endl;
+    this->l2Cache.access(addr, false);
     if (this->l2Cache.getAccessState() == WH) {
       std::cout << "\tL2 Cache Write Hit" << std::endl;
       return;
     }
-    std::cout << "\tL2 Cache Write Miss" << std::endl;
+    std::cout
+        << "\tL2 Cache Write Miss, forward to main memory (Write-no-allocate)"
+        << std::endl;
   }
 
   AccessState getL1AccessState() { return this->l1Cache.getAccessState(); }
