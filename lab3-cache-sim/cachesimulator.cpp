@@ -68,7 +68,7 @@ int main(int argc, char* argv[]) {
   unsigned int addr;
   // the address from the memory trace store in the std::bitset;
   std::bitset<32> accessaddr;
-  int i = 0;
+  int i = 1;
 
   if (traces.is_open() && tracesout.is_open()) {
     while (getline(traces, line)) {  // read mem access file and access Cache
