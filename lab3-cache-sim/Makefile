@@ -1,2 +1,6 @@
 cachesimulator: cachesimulator.cpp
-	g++ cachesimulator.cpp -o cachesimulator.out
+	@echo "g++ $^ -o $@"; g++ $^ -o $@
+
+.PHONY: clean
+clean:
+	@echo "rm cachesimulator"; rm cachesimulator
