@@ -133,6 +133,7 @@ class LowLevelCache {
         this->tagBitsBuffer.at(this->setIndexVal).at(way) = this->tagVal;
         std::cout << "\t\tWay " << way << " invalid/empty, cache updated"
                   << std::endl;
+        return;
       }
     }
 
