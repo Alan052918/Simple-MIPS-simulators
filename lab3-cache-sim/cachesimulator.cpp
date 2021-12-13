@@ -47,10 +47,10 @@ int main(int argc, char* argv[]) {
   // you like
   Cache cache = Cache(cacheconfig);
 
-  // L1 access state variable, can be one of NA, RH, RM, WH, WM;
-  int L1AcceState = 0;
-  // L2 access state variable, can be one of NA, RH, RM, WH, WM;
-  int L2AcceState = 0;
+  // // L1 access state variable, can be one of NA, RH, RM, WH, WM;
+  // int L1AcceState = 0;
+  // // L2 access state variable, can be one of NA, RH, RM, WH, WM;
+  // int L2AcceState = 0;
 
   std::ifstream traces;
   std::ofstream tracesout;
@@ -68,6 +68,7 @@ int main(int argc, char* argv[]) {
   unsigned int addr;
   // the address from the memory trace store in the std::bitset;
   std::bitset<32> accessaddr;
+  int i = 0;
 
   if (traces.is_open() && tracesout.is_open()) {
     while (getline(traces, line)) {  // read mem access file and access Cache
@@ -78,6 +79,11 @@ int main(int argc, char* argv[]) {
       std::stringstream saddr(xaddr);
       saddr >> std::hex >> addr;
       accessaddr = std::bitset<32>(addr);
+      std::cout << std::endl;
+      std::cout << "======================================" << i << std::endl;
+      i++;
+      std::cout << "access addr in hex: " << xaddr << std::endl;
+      std::cout << "access addr in bits: " << accessaddr << std::endl;
 
       // access the L1 and L2 Cache according to the trace;
       if (accesstype.compare("R") == 0) {
@@ -98,7 +104,10 @@ int main(int argc, char* argv[]) {
       }
 
       // Output hit/miss results for L1 and L2 to the output file
-      tracesout << L1AcceState << " " << L2AcceState << std::endl;
+      tracesout << cache.getL1AccessState() << " " << cache.getL2AccessState()
+                << std::endl;
+      std::cout << "access state: " << cache.getL1AccessState() << " "
+                << cache.getL2AccessState() << std::endl;
       cache.resetAccessStates();
     }
     traces.close();

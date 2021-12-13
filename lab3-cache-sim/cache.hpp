@@ -34,7 +34,15 @@ class LowLevelCache {
     this->tagPos = std::make_pair(0, 0);
     this->setIndexPos = std::make_pair(0, 0);
     this->blockOffsetPos = std::make_pair(0, 0);
-    std::cout << "new LowLevelCache object created, uninitialized."
+    this->wayCount = 0;
+    this->wayEvict = 0;
+    this->accessState = NA;
+    this->tagVal = 0;
+    this->setIndexVal = 0;
+    this->blockOffsetVal = 0;
+    this->tagBitsBuffer = std::vector<std::vector<unsigned long> >();
+    this->validBitsBuffer = std::vector<std::vector<bool> >();
+    std::cout << "\t\tnew LowLevelCache object created, uninitialized"
               << std::endl;
   }
 
@@ -54,7 +62,9 @@ class LowLevelCache {
     this->setIndexPos = std::make_pair(tagLength, setIndexLength);
     this->blockOffsetPos =
         std::make_pair(tagLength + setIndexLength, blockOffsetLength);
+
     this->wayCount = associativity;
+    this->wayEvict = 0;
 
     for (int i = 0; i < std::pow(2, setIndexLength); i++) {
       this->tagBitsBuffer.push_back(
@@ -63,71 +73,78 @@ class LowLevelCache {
     }
 
     if (associativity == 0) {
-      std::cout << "Fully associative" << std::endl;
+      std::cout << "\t\tFully associative" << std::endl;
     } else if (associativity == 1) {
-      std::cout << "Directly mapped" << std::endl;
+      std::cout << "\t\tDirectly mapped" << std::endl;
     } else {
-      std::cout << associativity << "-way associative" << std::endl;
+      std::cout << "\t\t" << associativity << "-way associative" << std::endl;
     }
-    std::cout << "\ttag bits: " << tagPos.first << "-" << tagPos.second
-              << std::endl;
-    std::cout << "\tset index bits: " << setIndexPos.first << "-"
+    std::cout << "\t\ttag bits: start-" << tagPos.first << " len-"
+              << tagPos.second << std::endl;
+    std::cout << "\t\tset index bits: start-" << setIndexPos.first << " len-"
               << setIndexPos.second << std::endl;
-    std::cout << "\tblock Offset bits: " << blockOffsetPos.first << "-"
-              << blockOffsetPos.second << std::endl;
+    std::cout << "\t\tblock Offset bits: start-" << blockOffsetPos.first
+              << " len-" << blockOffsetPos.second << std::endl;
+    std::cout << "\t\tcache index: " << std::pow(2, setIndexLength)
+              << std::endl;
   }
 
-  /**
-   * @brief Read cache for memory at addr, update cache access state
-   *
-   * @param addr read memory address
-   */
+  void decodeAddress(std::bitset<32> addr) {
+    std::string addrStr = addr.to_string();
+    this->tagVal =
+        std::bitset<32>(addrStr.substr(tagPos.first, tagPos.second)).to_ulong();
+    this->setIndexVal =
+        std::bitset<32>(addrStr.substr(setIndexPos.first, setIndexPos.second))
+            .to_ulong();
+    this->blockOffsetVal =
+        std::bitset<32>(
+            addrStr.substr(blockOffsetPos.first, blockOffsetPos.second))
+            .to_ulong();
+    std::cout << "\t\ttag value: " << this->tagVal << std::endl;
+    std::cout << "\t\tset index: " << this->setIndexVal << std::endl;
+    std::cout << "\t\tblk offst: " << this->blockOffsetVal << std::endl;
+  }
+
   void read(std::bitset<32> addr) {
     this->decodeAddress(addr);
     this->accessState = RM;
-    for (int i = 0; i < this->wayCount; i++) {
-      if ((this->tagBitsBuffer.at(this->setIndexVal).at(i) == this->tagVal) &&
-          (this->validBitsBuffer.at(this->setIndexVal).at(i) == true)) {
+    for (int way = 0; way < this->wayCount; way++) {
+      if ((this->tagBitsBuffer.at(this->setIndexVal).at(way) == this->tagVal) &&
+          (this->validBitsBuffer.at(this->setIndexVal).at(way) == true)) {
         this->accessState = RH;
         break;
       }
     }
   }
 
-  /**
-   * @brief
-   *
-   * @param addr
-   */
   void write(std::bitset<32> addr) {
     this->decodeAddress(addr);
     this->accessState = WM;
-    for (int i = 0; i < this->wayCount; i++) {
-      if ((this->tagBitsBuffer.at(this->setIndexVal).at(i) == this->tagVal) &&
-          (this->validBitsBuffer.at(this->setIndexVal).at(i) == true)) {
+    for (int way = 0; way < this->wayCount; way++) {
+      if ((this->tagBitsBuffer.at(this->setIndexVal).at(way) == this->tagVal) &&
+          (this->validBitsBuffer.at(this->setIndexVal).at(way) == true)) {
         this->accessState = WH;
         break;
       }
     }
   }
 
-  /**
-   * @brief Insert tag bits of missed address, evict old tag values if necessary
-   *
-   */
   void update() {
     for (int way = 0; way < this->wayCount; way++) {
       if (this->validBitsBuffer.at(this->setIndexVal).at(way) == false) {
         this->validBitsBuffer.at(this->setIndexVal).at(way) = true;
         this->tagBitsBuffer.at(this->setIndexVal).at(way) = this->tagVal;
-        std::cout << "Way " << way << " invalid, cache updated" << std::endl;
+        std::cout << "\t\tWay " << way << " invalid, cache updated"
+                  << std::endl;
         return;
       }
     }
 
+    std::cout << "way evict: " << wayEvict << std::endl;
+
     // all ways are valid, set full
     this->tagBitsBuffer.at(this->setIndexVal).at(wayEvict) = this->tagVal;
-    std::cout << "Set full, way " << wayEvict << " evicted, cache updated"
+    std::cout << "\t\tSet full, way " << wayEvict << " evicted, cache updated"
               << std::endl;
 
     // increment eviction counter
@@ -136,6 +153,33 @@ class LowLevelCache {
       wayEvict = 0;
     }
   }
+
+  /**
+   * @brief Back invalidate L1 when L2 evicts
+   * If the evicted block is updated in L1, do nothing
+   * If the evicted block is not in L1, do nothing
+   * If the evicted block is in L1 not updated, its valid bit turns off
+   *
+   * @param tagVal
+   */
+  void backInvalidate(unsigned long tagVal) {
+    if (tagVal == this->tagVal) {
+      std::cout << "\t\tupdated" << std::endl;
+      return;
+    }
+    for (int set = 0; set < this->tagBitsBuffer.size(); set++) {
+      for (int way = 0; way < this->wayCount; way++) {
+        if (this->tagBitsBuffer.at(set).at(way) == tagVal) {
+          this->validBitsBuffer.at(set).at(way) = false;
+          std::cout << "\t\tinvalidated" << std::endl;
+          break;
+        }
+      }
+    }
+    std::cout << "\t\tnot found" << std::endl;
+  }
+
+  unsigned long getTagVal() { return this->tagVal; }
 
   AccessState getAccessState() { return this->accessState; }
 
@@ -169,65 +213,63 @@ class LowLevelCache {
   // second layer is to select way inside a set
   std::vector<std::vector<unsigned long> > tagBitsBuffer;
   std::vector<std::vector<bool> > validBitsBuffer;
-
-  void decodeAddress(std::bitset<32> addr) {
-    std::string addrStr = addr.to_string();
-    this->tagVal =
-        std::bitset<32>(addrStr.substr(tagPos.first, tagPos.second)).to_ulong();
-    this->setIndexVal =
-        std::bitset<32>(addrStr.substr(setIndexPos.first, setIndexPos.second))
-            .to_ulong();
-    this->blockOffsetVal =
-        std::bitset<32>(
-            addrStr.substr(blockOffsetPos.first, blockOffsetPos.second))
-            .to_ulong();
-  }
 };
 
 class Cache {
  public:
   Cache(config cacheConfig) {
+    std::cout << "\tL1 Cache" << std::endl;
     this->l1Cache = LowLevelCache(cacheConfig.L1blocksize,
                                   cacheConfig.L1setsize, cacheConfig.L1size);
+    std::cout << "\tL2 Cache" << std::endl;
     this->l2Cache = LowLevelCache(cacheConfig.L2blocksize,
                                   cacheConfig.L2setsize, cacheConfig.L2size);
   }
 
   void read(std::bitset<32> addr) {
+    std::cout << "\tL1 Cache read" << std::endl;
     this->l1Cache.read(addr);
     if (this->l1Cache.getAccessState() == RH) {
-      std::cout << "L1 Cache Read Hit" << std::endl;
+      std::cout << "\tL1 Cache Read Hit" << std::endl;
       return;
     }
-    std::cout << "L1 Cache Read Miss" << std::endl;
+    std::cout << "\tL1 Cache Read Miss" << std::endl;
+    std::cout << "\tL2 Cache read" << std::endl;
     this->l2Cache.read(addr);
     if (this->l2Cache.getAccessState() == RH) {
-      std::cout << "L2 Cache Read Hit" << std::endl;
-
-      // TODO: update L1
+      std::cout << "\tL2 Cache Read Hit" << std::endl;
       this->l1Cache.update();
       return;
     }
-    std::cout << "L2 Cache Read Miss" << std::endl;
-    // TODO: update L1 and L2
+    std::cout << "\tL2 Cache Read Miss" << std::endl;
+    std::cout << "\tL1 update" << std::endl;
     this->l1Cache.update();
+    std::cout << "\tL2 update" << std::endl;
     this->l2Cache.update();
+    std::cout << "\tL1 back invalidate" << std::endl;
+    this->l1Cache.backInvalidate(l2Cache.getTagVal());
   }
 
   void write(std::bitset<32> addr) {
+    std::cout << "\tL1 Cache write" << std::endl;
     this->l1Cache.write(addr);
     if (this->l1Cache.getAccessState() == WH) {
-      std::cout << "L1 Cache Write Hit" << std::endl;
+      std::cout << "\tL1 Cache Write Hit" << std::endl;
       return;
     }
-    std::cout << "L1 Cache Write Miss" << std::endl;
+    std::cout << "\tL1 Cache Write Miss" << std::endl;
+    std::cout << "\tL2 Cache write" << std::endl;
     this->l2Cache.write(addr);
     if (this->l2Cache.getAccessState() == WH) {
-      std::cout << "L2 Cache Write Hit" << std::endl;
+      std::cout << "\tL2 Cache Write Hit" << std::endl;
       return;
     }
-    std::cout << "L2 Cache Write Miss" << std::endl;
+    std::cout << "\tL2 Cache Write Miss" << std::endl;
   }
+
+  AccessState getL1AccessState() { return this->l1Cache.getAccessState(); }
+
+  AccessState getL2AccessState() { return this->l2Cache.getAccessState(); }
 
   void resetAccessStates() {
     this->l1Cache.resetStates();
