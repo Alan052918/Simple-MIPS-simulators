@@ -126,6 +126,12 @@ class LowLevelCache {
     }
   }
 
+  /**
+   * @brief Add new tag value on read miss.
+   * If invalid/empty ways were found, put new tag value in there,
+   * If set is full, evict a block based on evict counter.
+   *
+   */
   void update() {
     for (int way = 0; way < this->wayCount; way++) {
       if (this->validBitsBuffer.at(this->setIndexVal).at(way) == false) {
